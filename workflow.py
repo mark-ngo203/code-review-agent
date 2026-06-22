@@ -1,3 +1,4 @@
+import asyncio
 from google.adk import Agent, Workflow
 from models.context_model import ContextModel
 from models.finding_model import FindingModel 
@@ -42,24 +43,37 @@ coordinator_agent = Agent(
 # 2. Defining State Functions
 async def generate_context(state: ReviewState) -> ReviewState:
     print("[1/4] Generating Architectural Context...")
-    # TODO 
-    # Call context_agent
-    return
+    response = await context_agent.run(state.code_snippet)
+    state.context = response.data
+    return state
 
 async def run_reviews(state: ReviewState) -> ReviewState:
     print(f"[2/4] Running Security & Performance Audits concurrently...")
-    # TODO 
-    # Using state.context.model_dump_json() to get all the information from context
-    # Running each agent
-    return
+    # Give agents the code and context
+    prompt_payload = f"Code:\n{state.code_snippet}\n\nContext:\n{state.context.model_dump_()}"
+
+    # ADK executing them concurrently
+    security_task = security_agent.run_async(prompt_payload)
+    performance_task = performance_agent.run_async(prompt_payload)
+
+    security_result, performance_result = await asyncio.gather(security_task, performance_task)
+
+    state.security_findings = security_result
+    state.performance_findings = performance_result
+    
+    return state
 
 async def combination_report(state: ReviewState) -> ReviewState:
     print("[3/4] Arbitrating conflicts and formatting final report...")
-    # TODO 
-    # Using state.context.model_dump_json() for context
-    # Loop through findings for both using state.security_finding and state.performance_findings
-    # [f.model_dump() for f in state.security_findings]
-    return
+    
+    prompt_payload = f"""
+    Context: {state.context.model_dump_json()}
+    Security Findings: {[f.model_dump for f in state.seucrity_findings]}
+    Performance Findings: {[f.model_dump for f in state.performance_findings]}
+    """
+    response = await coordinator_agent.run(prompt_payload)
+    state.final_report = response.data
+    return state
 
 # 3. Mapping the Directed Graph 
 review_workflow = Workflow(
