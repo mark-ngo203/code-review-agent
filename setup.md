@@ -16,16 +16,10 @@ Syncing up project:
 uv sync
 ```
 
-Running App:
+Running Application:
 
 ```bash
-uv run uvicorn main:app --reload
-```
-
-## Pipeline
-
-```mermaidflow
-
+uv run python main.py
 ```
 
 ## Technologies

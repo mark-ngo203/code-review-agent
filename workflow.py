@@ -1,5 +1,6 @@
 import asyncio
-from google.adk import Agent, Workflow
+from google.adk import Agent
+from google.adk.runners import InMemoryRunner
 from models.context_model import ContextModel
 from models.finding_model import FindingModel 
 from models.review_state import ReviewState
@@ -40,26 +41,33 @@ coordinator_agent = Agent(
     output_schema=str 
 )
 
+# ADK 2.0+ requires to run agent in a Runner function for internal handling
+async def execute_agent(agent: Agent, prompt: str) -> str:
+    runner = InMemoryRunner(agent=agent, app_name=agent.name)
+    events = await runner.run_debug(prompt)
+    final_event = events[-1]
+    print(f"\n[DEBUG] final_event attributes: {dir(final_event)}")
+    return final_event
+
 # 2. Defining State Functions
 async def generate_context(state: ReviewState) -> ReviewState:
     print("[1/4] Generating Architectural Context...")
-    response = await context_agent.run(state.code_snippet)
-    state.context = response.data
+    state.context = await execute_agent(context_agent, state.code_snippet)
+    
+    # DEBUG: See what ADK actually gave us
+    print(f"  -> DEBUG: Data came back as: {type(state.context)}")
     return state
 
 async def run_reviews(state: ReviewState) -> ReviewState:
     print(f"[2/4] Running Security & Performance Audits concurrently...")
     # Give agents the code and context
-    prompt_payload = f"Code:\n{state.code_snippet}\n\nContext:\n{state.context.model_dump_()}"
+    prompt_payload = f"Code:\n{state.code_snippet}\n\nContext:\n{state.context.model_dump_json()}"
 
     # ADK executing them concurrently
-    security_task = security_agent.run_async(prompt_payload)
-    performance_task = performance_agent.run_async(prompt_payload)
+    security_task = execute_agent(security_agent, prompt_payload)
+    performance_task = execute_agent(performance_agent, prompt_payload)
 
-    security_result, performance_result = await asyncio.gather(security_task, performance_task)
-
-    state.security_findings = security_result
-    state.performance_findings = performance_result
+    state.security_findings, state.performance_findings = await asyncio.gather(security_task, performance_task)
     
     return state
 
@@ -68,20 +76,30 @@ async def combination_report(state: ReviewState) -> ReviewState:
     
     prompt_payload = f"""
     Context: {state.context.model_dump_json()}
-    Security Findings: {[f.model_dump for f in state.seucrity_findings]}
-    Performance Findings: {[f.model_dump for f in state.performance_findings]}
+    Security Findings: {state.security_findings}
+    Performance Findings: {state.performance_findings}
     """
-    response = await coordinator_agent.run(prompt_payload)
-    state.final_report = response.data
+    state.final_report = await execute_agent(coordinator_agent, prompt_payload)
     return state
 
-# 3. Mapping the Directed Graph 
-review_workflow = Workflow(
-    name="pr_review_pipeline",
-    initial_state=ReviewState
-)
+# Custom pipeline coordinator
+class PRReviewPipeline:
+    def __init__(self):
+        self.steps = []
+    
+    def add_step(self, func):
+        self.steps.append(func)
+    
+    async def execute(self, state: ReviewState) -> ReviewState:
+        current_state = state
+        for step in self.steps:
+            current_state = await step(current_state)
+        return current_state
 
 # 4. Map the steps
+
+review_workflow = PRReviewPipeline()
+
 review_workflow.add_step(generate_context)
 review_workflow.add_step(run_reviews)
 review_workflow.add_step(combination_report)
