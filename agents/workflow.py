@@ -20,30 +20,33 @@ from models.finding_model import FindingModel
 from models.report_output import ReportOutput
 from models.review_state import ReviewState
 
+
+# For speed and cost efficiency, use `gemini-3.1-flash-lite`
+# For deep analysis, use `gemini-3.5-flash`
 context_agent = Agent(
     name="context_architect",
-    model="gemini-3.5-flash",
+    model="gemini-3.1-flash-lite",
     instruction=CONTEXT_PROMPT,
     output_schema=ContextModel,
 )
 
 security_agent = Agent(
     name="security_reviewer",
-    model="gemini-3.5-flash",
+    model="gemini-3.1-flash-lite",
     instruction=SECURITY_PROMPT,
     output_schema=list[FindingModel],
 )
 
 performance_agent = Agent(
     name="performance_reviewer",
-    model="gemini-3.5-flash",
+    model="gemini-3.1-flash-lite",
     instruction=PERFORMANCE_PROMPT,
     output_schema=list[FindingModel],
 )
 
 coordinator_agent = Agent(
     name="coordinator",
-    model="gemini-3.5-flash",
+    model="gemini-3.1-flash-lite",
     instruction=COORDINATOR_PROMPT,
     output_schema=ReportOutput,
 )
