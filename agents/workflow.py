@@ -3,9 +3,9 @@ import os
 
 from google.adk import Agent
 from agents.instructions import (
-    CONTEXT_PROMPT, 
-    SECURITY_PROMPT, 
-    PERFORMANCE_PROMPT, 
+    CONTEXT_PROMPT,
+    SECURITY_PROMPT,
+    PERFORMANCE_PROMPT,
     COORDINATOR_PROMPT
 )
 from agents.mock_data import (
@@ -69,14 +69,14 @@ async def run_reviews(state: ReviewState) -> ReviewState:
         performance_agent, prompt, list[FindingModel]
     )
 
-    # Runs concurrently 
-    # state.security_findings, state.performance_findings = await asyncio.gather(
-    #     security_task, performance_task
-    # )
+    # Runs concurrently
+    state.security_findings, state.performance_findings = await asyncio.gather(
+        security_task, performance_task
+    )
 
     # Runs linearly
-    state.security_findings = await security_task
-    state.performance_findings = await performance_task
+    # state.security_findings = await security_task
+    # state.performance_findings = await performance_task
     return state
 
 # 3. Combining Reports
@@ -88,6 +88,7 @@ async def combination_report(state: ReviewState) -> ReviewState:
         ReportOutput,
     )
     state.final_report = report.markdown
+    await asyncio.sleep(1)
     return state
 
 # Custom pipeline coordinator
@@ -111,6 +112,8 @@ async def mock_context_and_reviews(state: ReviewState) -> ReviewState:
     state.context = MOCK_CONTEXT
     state.security_findings = MOCK_SECURITY_FINDINGS
     state.performance_findings = MOCK_PERFORMANCE_FINDINGS
+
+    await asyncio.sleep(1)
 
     return state
 

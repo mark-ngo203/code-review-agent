@@ -137,4 +137,6 @@ def resolve_code_input(
         return resolve_string_input(code)
     if file is not None:
         return resolve_file_input(file)
-    return resolve_github_pr_input(pr)
+    if pr is not None:
+        return resolve_github_pr_input(pr)
+    raise InputError("Provide only one of the following: string, file path, or GitHub PR.")
