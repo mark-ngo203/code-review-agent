@@ -1,7 +1,7 @@
 import asyncio
 import os
 from models.review_state import ReviewState
-from workflow import review_workflow
+from agents.workflow import review_workflow
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,13 +13,13 @@ TEST_CODE = """
         # Vulnerability: string interpolation in SQL
         query = f"SELECT account_balance, ssn FROM users WHERE id = {user_id}"
         user = db.execute(query).fetchone()
-        
+
         # Bottleneck: N+1 loop with blocking sleep
         txs = []
         for tx_id in db.execute(f"SELECT tx_id FROM tx_map WHERE user_id={user_id}").fetchall():
-            import time; time.sleep(0.1) 
+            import time; time.sleep(0.1)
             txs.append(db.execute(f"SELECT * FROM transactions WHERE id={tx_id}").fetchone())
-            
+
         return {"user": user, "transactions": txs}
     """
 
@@ -31,7 +31,7 @@ async def main():
 
     final_state = await review_workflow.execute(initial_state)
 
-    print("\n[4/4] Pipeline Complete. Saving report!...")   
+    print("\n[4/4] Pipeline Complete. Saving report!...")
 
     os.makedirs("reports", exist_ok=True)
     if not final_state.final_report:

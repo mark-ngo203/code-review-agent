@@ -23,7 +23,7 @@ def _find_final_event(events: list[Event]) -> Event:
 # Run an ADK agent and parse its final response into schema.
 # Purposely abstracted as python can't assume ContextModel from agent.output_schema, so we have to validate the schema manually.
 # Though causes DRY violations.
-async def run_structured_agent[T](agent: Agent, prompt: str, schema: T) -> T:
+async def run_structured_agent[T](agent: Agent, prompt: str, schema: type[T]) -> T:
     runner = InMemoryRunner(agent=agent, app_name=agent.name)
     events = await runner.run_debug(prompt, quiet=True)
     text = extract_text_from_content(_find_final_event(events).content)
