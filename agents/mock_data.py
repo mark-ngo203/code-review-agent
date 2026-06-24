@@ -6,6 +6,8 @@ MOCK_CONTEXT = ContextModel(
     data_classification="Financial",
     risk_profile="HIGH",
     dependencies=["financial_db"],
+    application_type="web_api",
+    trust_boundary="authenticated_users",
 )
 
 MOCK_SECURITY_FINDINGS = [

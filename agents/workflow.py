@@ -3,9 +3,9 @@ import os
 
 from google.adk import Agent
 from agents.instructions import (
-    CONTEXT_PROMPT, 
-    SECURITY_PROMPT, 
-    PERFORMANCE_PROMPT, 
+    CONTEXT_PROMPT,
+    SECURITY_PROMPT,
+    PERFORMANCE_PROMPT,
     COORDINATOR_PROMPT
 )
 from agents.mock_data import (
@@ -20,30 +20,33 @@ from models.finding_model import FindingModel
 from models.report_output import ReportOutput
 from models.review_state import ReviewState
 
+
+# For speed and cost efficiency, use `gemini-3.1-flash-lite`
+# For deep analysis, use `gemini-3.5-flash`
 context_agent = Agent(
     name="context_architect",
-    model="gemini-2.5-flash",
+    model="gemini-3.1-flash-lite",
     instruction=CONTEXT_PROMPT,
     output_schema=ContextModel,
 )
 
 security_agent = Agent(
     name="security_reviewer",
-    model="gemini-2.5-flash",
+    model="gemini-3.1-flash-lite",
     instruction=SECURITY_PROMPT,
     output_schema=list[FindingModel],
 )
 
 performance_agent = Agent(
     name="performance_reviewer",
-    model="gemini-2.5-flash",
+    model="gemini-3.1-flash-lite",
     instruction=PERFORMANCE_PROMPT,
     output_schema=list[FindingModel],
 )
 
 coordinator_agent = Agent(
     name="coordinator",
-    model="gemini-2.5-flash",
+    model="gemini-3.1-flash-lite",
     instruction=COORDINATOR_PROMPT,
     output_schema=ReportOutput,
 )
@@ -69,9 +72,14 @@ async def run_reviews(state: ReviewState) -> ReviewState:
         performance_agent, prompt, list[FindingModel]
     )
 
+    # Runs concurrently
     state.security_findings, state.performance_findings = await asyncio.gather(
         security_task, performance_task
     )
+
+    # Runs linearly
+    # state.security_findings = await security_task
+    # state.performance_findings = await performance_task
     return state
 
 # 3. Combining Reports
@@ -83,6 +91,7 @@ async def combination_report(state: ReviewState) -> ReviewState:
         ReportOutput,
     )
     state.final_report = report.markdown
+    await asyncio.sleep(1)
     return state
 
 # Custom pipeline coordinator
@@ -106,6 +115,8 @@ async def mock_context_and_reviews(state: ReviewState) -> ReviewState:
     state.context = MOCK_CONTEXT
     state.security_findings = MOCK_SECURITY_FINDINGS
     state.performance_findings = MOCK_PERFORMANCE_FINDINGS
+
+    await asyncio.sleep(1)
 
     return state
 

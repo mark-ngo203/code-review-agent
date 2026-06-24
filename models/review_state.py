@@ -7,6 +7,8 @@ from models.finding_model import FindingModel
 class ReviewState(BaseModel):
     # Inputs
     code_snippet: str
+    source_type: str = ""
+    source_label: str = ""
     
     # Agent Outputs
     context: Optional[ContextModel] = None
