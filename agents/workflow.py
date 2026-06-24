@@ -22,28 +22,28 @@ from models.review_state import ReviewState
 
 context_agent = Agent(
     name="context_architect",
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     instruction=CONTEXT_PROMPT,
     output_schema=ContextModel,
 )
 
 security_agent = Agent(
     name="security_reviewer",
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     instruction=SECURITY_PROMPT,
     output_schema=list[FindingModel],
 )
 
 performance_agent = Agent(
     name="performance_reviewer",
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     instruction=PERFORMANCE_PROMPT,
     output_schema=list[FindingModel],
 )
 
 coordinator_agent = Agent(
     name="coordinator",
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     instruction=COORDINATOR_PROMPT,
     output_schema=ReportOutput,
 )
@@ -69,9 +69,14 @@ async def run_reviews(state: ReviewState) -> ReviewState:
         performance_agent, prompt, list[FindingModel]
     )
 
-    state.security_findings, state.performance_findings = await asyncio.gather(
-        security_task, performance_task
-    )
+    # Runs concurrently 
+    # state.security_findings, state.performance_findings = await asyncio.gather(
+    #     security_task, performance_task
+    # )
+
+    # Runs linearly
+    state.security_findings = await security_task
+    state.performance_findings = await performance_task
     return state
 
 # 3. Combining Reports

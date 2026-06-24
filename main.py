@@ -1,7 +1,7 @@
 import argparse
 import asyncio
-import os
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -29,6 +29,18 @@ DEMO_CODE = """
     """
 
 
+REPORTS_DIR = Path("reports")
+
+
+def resolve_output_path(output: str) -> Path:
+    path = Path(output)
+    if path.is_absolute():
+        return path
+    if path.parts and path.parts[0] == REPORTS_DIR.name:
+        return path
+    return REPORTS_DIR / path
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run the multi-agent code review pipeline.",
@@ -54,7 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         default="report.md",
-        help="Path for the generated markdown report.",
+        help="Report filename or path (default: reports/report.md).",
     )
     return parser
 
@@ -91,12 +103,12 @@ async def main() -> None:
 
     print("\n[4/4] Pipeline Complete. Saving report!...")
 
-    output_path = args.output
-    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    output_path = resolve_output_path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     if not final_state.final_report:
         raise RuntimeError("Pipeline finished without a final report")
 
-    with open("reports/{output_path}", "w", encoding="utf-8") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(final_state.final_report)
 
     print(f"Saved to {output_path}")

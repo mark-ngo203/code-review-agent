@@ -42,6 +42,8 @@ Why `data_classification`? Agents can treat all code equally when doing an analy
 
 Why abstract `finding_model`? Unifying the basic fields makes the final step for the coordinator much easier as it helps with cross referencing findings and grouping up severity. Although **standard bug reports** follow more detailed steps, having an abstraction reduces tokens and allows seamless comparison for the coordinator agent.
 
+Originally, we wanted the agents to run **concurrently** for performance sake, however, since we are using the free tier for our `GOOGLE_API_KEY`, we faced a lot of token limitations. If we were on a paid plan, we can run them concurrently making it faster, but to save our system from failing at the last step (running out of tokens for the coordinator), we decided to change it to linear. 
+
 - Drawbacks: Security and Performance findings usually need more fields personalized fields, like `exploitability` and `time complexity` respectfully.
 - Fix: we can do polymorphic models with pydantic's inheritance to get both instances if we want to fine-tune it more.
 
