@@ -9,8 +9,8 @@ A code review agent that focuses on security and performance aspects. Built for 
 3. **Parallel Reviews**: The ADK workflow branches for the multi-agent review. Both the Security and Performance Agent read the code and the `ContextModel`.
    1. Dynamic Prompting: If the Context flags specific data states, the Security Agent dynamically looks for integer overflow or rounding exploits.
    2. Agent Findings: Both agents add their findings as `List[FindingModel]` back into the shared state.
-4. **Arbitration + Combination**: The Coordinator reads the entire state, resolving any conflicting advice between Security and Performance, formating the data, and writes a final markdown string into the state's final_report field.
-5. **Output**: The workflow would complete, exracting `final_report`, saving it to `report.md`.
+4. **Arbitration + Combination**: The Coordinator reads the entire state, resolving any conflicting advice between Security and Performance, formating the data, and writes a final markdown string into the model `ReportOutput`.
+5. **Output**: The workflow would complete, exracting `final_report`, saving it to `reports/report.md`.
 
 ## Visual Pipeline
 
@@ -44,3 +44,4 @@ Why abstract `finding_model`? Unifying the basic fields makes the final step for
 
 - Drawbacks: Security and Performance findings usually need more fields personalized fields, like `exploitability` and `time complexity` respectfully.
 - Fix: we can do polymorphic models with pydantic's inheritance to get both instances if we want to fine-tune it more.
+

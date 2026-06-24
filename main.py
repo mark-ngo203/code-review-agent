@@ -34,10 +34,13 @@ async def main():
     print("\n[4/4] Pipeline Complete. Saving report!...")   
 
     os.makedirs("reports", exist_ok=True)
+    if not final_state.final_report:
+        raise RuntimeError("Pipeline finished without a final report")
+
     with open("reports/report.md", "w", encoding="utf-8") as f:
         f.write(final_state.final_report)
-        
-    print("Saved to report.md")
+
+    print("Saved to reports/report.md")
 
 if __name__ == "__main__":
     asyncio.run(main())

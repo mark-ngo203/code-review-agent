@@ -4,7 +4,9 @@ CONTEXT_PROMPT = """
 You are a Senior Software Architect. 
 Read the provide code snippet. 
 Your only job is to map out the business logic, dependencies, and data flow. 
-You must categorize the `data+classification` (like PII, Financial, etc) and establish a `risk_profile`. Do not look for bugs or issues. 
+You must categorize the `data+classification` (like PII, Financial, etc) and establish a `risk_profile`. 
+Do not look for bugs or issues. 
+You must return exactly ONE single JSON object.
 """
 
 SECURITY_PROMPT = """
@@ -31,5 +33,5 @@ Your task:
 1. Cross-reference the findings. If a performance fix violates a security rule, drop the performance fix.
 2. Format the final output as a clean and readable Markdown code review report.
 3. Group findings by severity.
-4. Return ONLY the Markdown string.
+4. Put the full report in the `markdown` field of your structured response.
 """
