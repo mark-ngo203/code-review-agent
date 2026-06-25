@@ -70,3 +70,69 @@ Implemented `application_type` and `trust_boundary` after using the code-review-
 - We would add Arize Phoenix to track the agents and improve observability to the steps taken by the agents. This would help us get a better understanding of the agents bahaviour and allow us to easily adjust the prompt and debug any issues that arise.
 - Create and connect the agent to a frontend so that users can easily see the vulnerabilities in their code from an uploaded file or github pull request link.
 - Improve the prompts for agents so that there is a hierarchy of vulnerabilities to look out for that are common and are often overlooked in code reviews.
+
+## Setup
+
+### Prerequisites
+
+#### Install uv
+
+`uv` is the package manager used for this project. Install it before anything else.
+
+macOS / Linux:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Windows:
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Verify the installation:
+```bash
+uv --version
+```
+
+### Python Environment
+
+Clone the repo and initialize the environment:
+
+```bash
+uv venv
+uv sync
+```
+
+If dependencies change or you pull new commits:
+
+```bash
+uv sync
+```
+
+### Running the Application
+
+Inline code snippet:
+```bash
+uv run python main.py --code "def add(a, b): return a + b"
+```
+
+File (or stdin with `-`):
+```bash
+uv run python main.py --file path/to/code.py
+```
+
+GitHub PR (public repos only — URL or short form):
+```bash
+uv run python main.py --pr https://github.com/owner/repo/pull/123
+uv run python main.py --pr owner/repo#123
+```
+
+Built-in demo:
+```bash
+uv run python main.py --demo
+```
+
+#### Custom Output Path
+```bash
+uv run python main.py --demo --output "report_pr-#2.md"
+```
